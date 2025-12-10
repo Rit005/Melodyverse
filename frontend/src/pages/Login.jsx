@@ -1,127 +1,126 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../utils/api";
+import { motion } from "framer-motion";
 
 export default function Login() {
   const navigate = useNavigate();
 
-  const [emailOrUsername, setEmailOrUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({
+    email: "",
+    password: ""
+  });
+
   const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Basic validation
-  const validateForm = () => {
-    if (!emailOrUsername.trim()) {
-      setError("Email or Username is required");
-      return false;
-    }
-    if (!password.trim()) {
-      setError("Password is required");
-      return false;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return false;
-    }
-    return true;
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError("");
   };
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
 
-    if (!validateForm()) return;
-
-    setLoading(true);
+    if (!form.email || !form.password) {
+      setError("All fields required");
+      return;
+    }
 
     try {
+      setLoading(true);
+
       const res = await api.post("/login", {
-        email: emailOrUsername,
-        password
+        ...form,
+        rememberMe
       });
 
       const token = res.data.token;
 
-      if (rememberMe) {
-        localStorage.setItem("token", token);
-      } else {
-        sessionStorage.setItem("token", token);
-      }
+      if (rememberMe) localStorage.setItem("token", token);
+      else sessionStorage.setItem("token", token);
 
       navigate("/home");
-
     } catch (err) {
-      console.log(err);
-      setError("Invalid username or password");
+      setError(err.response?.data?.message || "Login Failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-900 px-4">
+    <motion.div
+      className="flex items-center justify-center h-screen bg-gray-900 px-4"
+      initial={{ opacity: 0, y: 25 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <form
-        className="bg-gray-800 p-7 rounded-xl w-full max-w-sm shadow-lg"
-        onSubmit={handleLogin}
+        onSubmit={handleSubmit}
+        className="bg-gray-800 p-7 rounded-xl w-full max-w-sm shadow-xl"
+        aria-label="Login Form"
       >
-        <h2 className="text-white text-3xl font-bold mb-5 text-center">
-          Login
+        <h2 className="text-white text-2xl font-bold mb-5 text-center">
+          MelodyVerse 🎵
         </h2>
 
-        {error && (
-          <p className="text-red-500 text-sm mb-3 text-center">
-            {error}
-          </p>
-        )}
+        {error && <p className="text-red-500 text-sm mb-2 text-center">{error}</p>}
 
         <input
-          type="text"
-          placeholder="Email or Username"
-          className="w-full mb-3 p-2.5 rounded bg-gray-700 text-white outline-none focus:ring-2 focus:ring-blue-500"
-          onChange={(e) => setEmailOrUsername(e.target.value)}
+          name="email"
+          type="email"
+          placeholder="Email"
+          className="w-full mb-3 p-2 rounded bg-gray-700 text-white"
+          onChange={handleChange}
+          aria-label="Email"
         />
 
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full mb-2 p-2.5 rounded bg-gray-700 text-white outline-none focus:ring-2 focus:ring-blue-500"
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <div className="relative">
+          <input
+            name="password"
+            placeholder="Password"
+            type={showPassword ? "text" : "password"}
+            className="w-full mb-3 p-2 rounded bg-gray-700 text-white"
+            onChange={handleChange}
+            aria-label="Password"
+          />
 
-        <div className="flex items-center justify-between mb-4">
-          <label className="flex items-center text-gray-300 text-sm">
-            <input
-              type="checkbox"
-              className="mr-2"
-              onChange={() => setRememberMe(!rememberMe)}
-            />
-            Remember me
-          </label>
-
-          <Link
-            to="/forgot-password"
-            className="text-blue-400 text-sm hover:underline"
+          <span
+            onClick={() => setShowPassword(!showPassword)}
+            className="text-sm text-blue-400 absolute right-3 top-2 cursor-pointer"
           >
-            Forgot Password?
-          </Link>
+            {showPassword ? "Hide" : "Show"}
+          </span>
         </div>
 
+        <label className="flex items-center text-gray-300 text-sm mb-3">
+          <input
+            type="checkbox"
+            className="mr-2"
+            onChange={() => setRememberMe(!rememberMe)}
+          />
+          Remember Me
+        </label>
+
         <button
-          className="w-full bg-blue-600 hover:bg-blue-700 transition text-white font-semibold p-2 rounded mt-1"
+          className="w-full bg-purple-600 text-white p-2 rounded mt-3"
           disabled={loading}
         >
           {loading ? "Logging in..." : "Login"}
         </button>
 
         <p className="text-gray-400 text-sm mt-4 text-center">
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-blue-500 font-medium">
-            Signup
-          </Link>
+          Don't have an account?
+          <Link to="/signup" className="text-purple-400 ml-1">Signup</Link>
+        </p>
+
+        <p className="text-gray-400 text-sm mt-2 text-center cursor-pointer">
+          Forgot Password?
         </p>
       </form>
-    </div>
+    </motion.div>
   );
 }
