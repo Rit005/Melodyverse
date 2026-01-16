@@ -10,7 +10,7 @@ export default function Signup() {
     username: "",
     email: "",
     password: "",
-    confirmPassword: ""
+   
   });
 
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -107,14 +107,7 @@ export default function Signup() {
           </span>
         </div>
 
-        <input
-          name="confirmPassword"
-          placeholder="Confirm Password"
-          type={showPassword ? "text" : "password"}
-          className="w-full mb-3 p-2 rounded bg-gray-700 text-white"
-          onChange={handleChange}
-          aria-label="Confirm Password"
-        />
+        
 
         <label className="flex items-center text-gray-300 text-sm mb-3">
           <input
