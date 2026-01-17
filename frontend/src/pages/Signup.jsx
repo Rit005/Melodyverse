@@ -28,9 +28,7 @@ export default function Signup() {
     if (!form.username || !form.email || !form.password)
       return setError("All fields required");
 
-    if (form.password !== form.confirmPassword)
-      return setError("Passwords do not match");
-
+    
     if (!acceptTerms)
       return setError("Agree to terms first");
 
